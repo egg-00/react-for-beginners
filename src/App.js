@@ -1,42 +1,55 @@
-// import Button from "./Button";
 // import styles from "./App.module.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
-  const [toDo, setToDo] = useState("");
-  const [toDos, setToDos] = useState([]);
-  const onChange = (event) => setToDo(event.target.value);
-  const onSubmit = (event) => {
-    event.preventDefault();
-    if (toDo === "") {
-      return;
-    }
-    setToDo("");
-    setToDos((currentArray) => {
-      const newArray = [...currentArray, toDo];
-      console.log(newArray);
-      return newArray;
-    });
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]);
+  const [money, setMoney] = useState();
+  const [cost, setCost] = useState();
+  const onChangeYourMoney = (event) => setMoney(event.target.value);
+  const onChangeCoin = (event) => {
+    setCost(event.target.value);
   };
-  // console.log(toDos);
+  useEffect(() => {
+    fetch("https://api.coinpaprika.com/v1/tickers")
+      .then((response) => response.json())
+      .then((json) => {
+        setCoins(json);
+        setLoading(false);
+        setMoney(1);
+        setCost(1);
+      });
+  }, []);
   return (
     <div>
-      <h1>My To Dos : {toDos.length}</h1>
-      <form onSubmit={onSubmit}>
-        <input
-          onChange={onChange}
-          value={toDo}
-          type="text"
-          placeholder="Write your to do..."
-        />
-        <button>Add To Do</button>
-      </form>
-      <hr />
-      <ul>
-        {toDos.map((item, index) => (
-          <li key={index}>{item.toUpperCase()}</li>
-        ))}
-      </ul>
+      <h1>The Coins! {loading ? null : `(${coins.length})`}</h1>
+      <input
+        type="number"
+        value={money}
+        onChange={onChangeYourMoney}
+        placeholder="Write your money"
+      ></input>
+      <input
+        type="number"
+        // value={parseInt(money) / parseInt(cost)}
+        value={Math.round(money / cost)}
+        // onChange={onChange}
+        // placeholder="Write your money"
+        disabled
+      ></input>
+
+      {loading ? (
+        <strong>Loading...</strong>
+      ) : (
+        <select onChange={onChangeCoin}>
+          <option>Select your coins!</option>
+          {coins.map((coin, index) => (
+            <option key={index} value={coin.quotes.USD.price}>
+              {coin.name} ({coin.symbol}) : ${coin.quotes.USD.price}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }
